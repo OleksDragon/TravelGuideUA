@@ -4,6 +4,7 @@ import androidx.lifecycle.LiveData;
 import androidx.room.*;
 
 import com.example.travelguideua.data.model.Place;
+
 import java.util.List;
 
 @Dao
@@ -22,5 +23,9 @@ public interface PlaceDao {
 
     @Query("SELECT * FROM places WHERE name LIKE :query")
     LiveData<List<Place>> search(String query);
+
+    @Query("SELECT * FROM places WHERE id = :placeId")
+    LiveData<Place> getPlaceById(String placeId);
 }
+
 

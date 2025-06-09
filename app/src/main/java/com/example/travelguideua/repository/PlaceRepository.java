@@ -1,11 +1,10 @@
-package com.example.travelguideua.data.repository;
+package com.example.travelguideua.repository;
 
 import android.app.Application;
-
 import androidx.lifecycle.LiveData;
 
+import com.example.travelguideua.data.db.AppDatabase;
 import com.example.travelguideua.data.db.PlaceDao;
-import com.example.travelguideua.data.db.PlaceDatabase;
 import com.example.travelguideua.data.model.Place;
 
 import java.util.List;
@@ -17,7 +16,7 @@ public class PlaceRepository {
     private final ExecutorService executor = Executors.newSingleThreadExecutor();
 
     public PlaceRepository(Application app) {
-        PlaceDatabase db = PlaceDatabase.getInstance(app);
+        AppDatabase db = AppDatabase.getInstance(app);
         dao = db.placeDao();
     }
 
@@ -29,12 +28,20 @@ public class PlaceRepository {
         return dao.search("%" + query + "%");
     }
 
+    public LiveData<Place> getPlaceById(String placeId) {
+        return dao.getPlaceById(placeId);
+    }
+
     public void insert(Place place) {
         executor.execute(() -> dao.insert(place));
     }
 
     public void update(Place place) {
         executor.execute(() -> dao.update(place));
+    }
+
+    public void delete(Place place) {
+        executor.execute(() -> dao.delete(place));
     }
 }
 
