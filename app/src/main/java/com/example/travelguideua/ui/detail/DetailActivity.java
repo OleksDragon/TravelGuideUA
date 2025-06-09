@@ -8,6 +8,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.ViewModelProvider;
 import com.bumptech.glide.Glide;
 import com.example.travelguideua.R;
+import com.example.travelguideua.data.local.FavoritePlace;
 import com.example.travelguideua.viewmodel.FavoriteViewModel;
 import com.example.travelguideua.viewmodel.HistoryViewModel;
 import com.example.travelguideua.viewmodel.PlaceViewModel;
@@ -68,7 +69,7 @@ public class DetailActivity extends AppCompatActivity {
         descriptionView = findViewById(R.id.tvDetailDescription);
         weatherView = findViewById(R.id.tvWeather);
         imageView = findViewById(R.id.ivDetail);
-        //favoriteButton = findViewById(R.id.ivFavoriteButton);
+        favoriteButton = findViewById(R.id.ivFavoriteButton);
 
         String placeId = getIntent().getStringExtra("place_id");
         placeViewModel = new ViewModelProvider(this).get(PlaceViewModel.class);
@@ -81,7 +82,17 @@ public class DetailActivity extends AppCompatActivity {
                     bindPlace(place);
                     loadWeather(place.region);
 
-                    //favoriteButton.setOnClickListener(...)
+                    favoriteButton.setOnClickListener(v -> {
+                        FavoritePlace favPlace = new FavoritePlace(
+                                place.getName(),
+                                place.getDescription(),
+                                place.getRegion(),
+                                place.getImageUrl()
+                        );
+                        favoriteViewModel.insert(favPlace);
+                        Toast.makeText(this, "Додано до обраного: " + place.getName(), Toast.LENGTH_SHORT).show();
+                    });
+
                     //historyViewModel.insert(...)
 
                 } else {

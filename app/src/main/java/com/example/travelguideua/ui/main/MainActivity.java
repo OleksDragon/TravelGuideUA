@@ -8,6 +8,7 @@ import android.view.MenuItem;
 import android.widget.SearchView;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -15,6 +16,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.travelguideua.R;
 import com.example.travelguideua.data.model.Place;
 import com.example.travelguideua.ui.detail.DetailActivity;
+import com.example.travelguideua.ui.favorite.FavoritePlacesActivity;
 import com.example.travelguideua.viewmodel.PlaceViewModel;
 
 
@@ -27,36 +29,41 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        Toolbar toolbar = findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+
         RecyclerView recyclerView = findViewById(R.id.recyclerView);
         SearchView searchView = findViewById(R.id.searchView);
 
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
-        // Передача лямбда-виразу для обробки натискань на елементи списку
         adapter = new PlaceAdapter(this::openDetail);
         recyclerView.setAdapter(adapter);
 
         placeViewModel = new ViewModelProvider(this).get(PlaceViewModel.class);
 
-        // Спостерігаємо за списком місць з ViewModel і оновлюємо адаптер
         placeViewModel.getAllPlaces().observe(this, adapter::setPlaces);
 
-        // Додаємо тестові дані.
-        placeViewModel.getAllPlaces().observe(this, places -> {
-            if (places == null || places.isEmpty()) {
-                addSampleData();
-                Log.d("MainActivity", "Додано тестові дані.");
-            }
-        });
+        // Додаємо тестові дані
+        if (getSharedPreferences("PREFERENCE", MODE_PRIVATE).getBoolean("firstrun", true)) {
+            addSampleData();
+            getSharedPreferences("PREFERENCE", MODE_PRIVATE).edit().putBoolean("firstrun", false).apply();
+            Log.d("MainActivity", "Додано тестові дані при першому запуску.");
+        }
+
 
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String query) {
+                // placeViewModel.search(query).observe(MainActivity.this, adapter::setPlaces); // Оновлюємо, щоб не створювати новий LiveData
+                placeViewModel.search(query).removeObservers(MainActivity.this); // Важливо: видаляємо попередні обсервери
                 placeViewModel.search(query).observe(MainActivity.this, adapter::setPlaces);
                 return true;
             }
 
             @Override
             public boolean onQueryTextChange(String newText) {
+                // placeViewModel.search(newText).observe(MainActivity.this, adapter::setPlaces); // Оновлюємо, щоб не створювати новий LiveData
+                placeViewModel.search(newText).removeObservers(MainActivity.this); // Важливо: видаляємо попередні обсервери
                 placeViewModel.search(newText).observe(MainActivity.this, adapter::setPlaces);
                 return true;
             }
@@ -81,16 +88,25 @@ public class MainActivity extends AppCompatActivity {
         placeViewModel.insert(new Place("5", "Дніпро", "Дніпропетровська область", "Велике індустріальне місто на березі Дніпра.", "https://upload.wikimedia.org/wikipedia/commons/7/77/Dnipropetrovsk_view_2015_tov-tob.jpg", false));
     }
 
-    // Поки що не реалізовано меню, це буде на пізніших кроках
+    // Метод для створення меню опцій
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        // getMenuInflater().inflate(R.menu.main_menu, menu);
-        return super.onCreateOptionsMenu(menu);
+        getMenuInflater().inflate(R.menu.main_menu, menu);
+        return true;
     }
 
+    // Обробка вибору пункту меню
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        int id = item.getItemId();
+        if (id == R.id.action_favorites) {
+            startActivity(new Intent(this, FavoritePlacesActivity.class));
+            return true;
+        }
+        // else if (id == R.id.action_history) {
+        //     startActivity(new Intent(this, HistoryActivity.class));
+        //     return true;
+        // }
         return super.onOptionsItemSelected(item);
     }
 }
-
