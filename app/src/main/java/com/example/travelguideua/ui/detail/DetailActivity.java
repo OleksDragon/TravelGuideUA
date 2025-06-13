@@ -9,6 +9,7 @@ import androidx.lifecycle.ViewModelProvider;
 import com.bumptech.glide.Glide;
 import com.example.travelguideua.R;
 import com.example.travelguideua.data.local.FavoritePlace;
+import com.example.travelguideua.data.local.HistoryPlace;
 import com.example.travelguideua.viewmodel.FavoriteViewModel;
 import com.example.travelguideua.viewmodel.HistoryViewModel;
 import com.example.travelguideua.viewmodel.PlaceViewModel;
@@ -74,7 +75,7 @@ public class DetailActivity extends AppCompatActivity {
         String placeId = getIntent().getStringExtra("place_id");
         placeViewModel = new ViewModelProvider(this).get(PlaceViewModel.class);
         favoriteViewModel = new ViewModelProvider(this).get(FavoriteViewModel.class);
-        //historyViewModel = new ViewModelProvider(this).get(HistoryViewModel.class);
+        historyViewModel = new ViewModelProvider(this).get(HistoryViewModel.class);
 
         if (placeId != null) {
             placeViewModel.getPlaceById(placeId).observe(this, place -> {
@@ -93,7 +94,7 @@ public class DetailActivity extends AppCompatActivity {
                         Toast.makeText(this, "Додано до обраного: " + place.getName(), Toast.LENGTH_SHORT).show();
                     });
 
-                    //historyViewModel.insert(...)
+                    historyViewModel.insert(new HistoryPlace(place.getId(), place.getName(), new Date().getTime()));
 
                 } else {
                     Toast.makeText(this, "Місце не знайдено", Toast.LENGTH_SHORT).show();
@@ -121,26 +122,33 @@ public class DetailActivity extends AppCompatActivity {
 
     private void loadWeather(String region) {
         String city = mapRegionToCity(region);
-        placeViewModel.loadWeather(city);
-        placeViewModel.getWeatherLiveData().observe(this, weather -> {
-            if (weather != null) {
-                weatherView.setText(
-                        " ☁️  Погода: " + weather.getDescription() + "\n" +
-                                " 🌤  Температура: " + String.format("%.1f", weather.getTemp()) + "°C\n" +
-                                " 🌡️  Відчувається як: " + String.format("%.1f", weather.getFeelsLike()) + "°C\n" +
-                                " 🔽  Мін: " + String.format("%.1f", weather.getTempMin()) + "°C\n" +
-                                " 🔼  Макс: " + String.format("%.1f", weather.getTempMax()) + "°C\n" +
-                                " 💧  Вологість: " + weather.getHumidity() + "%\n" +
-                                " 🔵  Тиск: " + weather.getPressure() + " гПа\n" +
-                                " 🌬️  Вітер: " + weather.getWindSpeed() + " м/с\n" +
-                                " 🌫  Хмарність: " + weather.getClouds() + "%\n" +
-                                " 🌅  Схід сонця: " + formatUnixTime(weather.getSunrise()) + "\n" +
-                                " 🌇  Захід сонця: " + formatUnixTime(weather.getSunset())
-                );
-            } else {
-                weatherView.setText("Немає даних про погоду для " + city + ". Перевірте API ключ.");
-            }
-        });
+        try {
+            placeViewModel.loadWeather(city);
+            placeViewModel.getWeatherLiveData().observe(this, weather -> {
+                if (weather != null) {
+                    weatherView.setText(
+                            " ☁️  Погода: " + weather.getDescription() + "\n" +
+                                    " 🌤  Температура: " + String.format("%.1f", weather.getTemp()) + "°C\n" +
+                                    " 🌡️  Відчувається як: " + String.format("%.1f", weather.getFeelsLike()) + "°C\n" +
+                                    " 🔽  Мін: " + String.format("%.1f", weather.getTempMin()) + "°C\n" +
+                                    " 🔼  Макс: " + String.format("%.1f", weather.getTempMax()) + "°C\n" +
+                                    " 💧  Вологість: " + weather.getHumidity() + "%\n" +
+                                    " 🔵  Тиск: " + weather.getPressure() + " гПа\n" +
+                                    " 🌬️  Вітер: " + weather.getWindSpeed() + " м/с\n" +
+                                    " 🌫  Хмарність: " + weather.getClouds() + "%\n" +
+                                    " 🌅  Схід сонця: " + formatUnixTime(weather.getSunrise()) + "\n" +
+                                    " 🌇  Захід сонця: " + formatUnixTime(weather.getSunset())
+                    );
+                } else {
+                    weatherView.setText("❌ Немає даних про погоду для " + city);
+                    Toast.makeText(this, "Не вдалося завантажити погоду. Перевірте інтернет", Toast.LENGTH_SHORT).show();
+                }
+            });
+        } catch (Exception e) {
+            weatherView.setText("⚠️ Помилка завантаження погоди.");
+            Toast.makeText(this, "Помилка при отриманні погоди: " + e.getMessage(), Toast.LENGTH_LONG).show();
+        }
     }
+
 
 }

@@ -17,6 +17,7 @@ import com.example.travelguideua.R;
 import com.example.travelguideua.data.model.Place;
 import com.example.travelguideua.ui.detail.DetailActivity;
 import com.example.travelguideua.ui.favorite.FavoritePlacesActivity;
+import com.example.travelguideua.ui.history.HistoryActivity;
 import com.example.travelguideua.viewmodel.PlaceViewModel;
 
 
@@ -103,10 +104,10 @@ public class MainActivity extends AppCompatActivity {
             startActivity(new Intent(this, FavoritePlacesActivity.class));
             return true;
         }
-        // else if (id == R.id.action_history) {
-        //     startActivity(new Intent(this, HistoryActivity.class));
-        //     return true;
-        // }
+         else if (id == R.id.action_history) {
+             startActivity(new Intent(this, HistoryActivity.class));
+             return true;
+         }
         return super.onOptionsItemSelected(item);
     }
 }
